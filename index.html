@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Train Linked List</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f14;
+  --surface: #151820;
+  --surface2: #1c2030;
+  --surface3: #242840;
+  --accent: #f4c430;
+  --accent2: #e07b39;
+  --blue: #4a9eff;
+  --green: #4ecf82;
+  --red: #ff5f5f;
+  --purple: #a78bfa;
+  --text: #e8eaf2;
+  --text2: #8a8fa8;
+  --text3: #555a72;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --rail-h: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* grid bg */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(74,158,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,158,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 24px 60px;
+}
+
+/* HEADER */
+header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 36px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.logo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.logo-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.logo-title {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+.logo-title span { color: var(--accent); }
+.stats {
+  display: flex;
+  gap: 20px;
+}
+.stat {
+  text-align: right;
+}
+.stat-val {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+.stat-lbl {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+}
+
+/* TABS */
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+  width: fit-content;
+}
+.tab {
+  padding: 8px 22px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .2s;
+  letter-spacing: 0.02em;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  background: var(--surface3);
+  color: var(--text);
+  border: 1px solid var(--border2);
+}
+.tab.active.insert { color: var(--blue); }
+.tab.active.delete { color: var(--red); }
+.tab.active.search { color: var(--green); }
+.tab.active.read { color: var(--accent); }
+
+/* CONTROL PANEL */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.panel-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.controls-row + .controls-row {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+input[type=text], select {
+  height: 38px;
+  padding: 0 14px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .2s;
+  min-width: 0;
+}
+input[type=text] { width: 140px; }
+select { cursor: pointer; }
+input[type=text]:focus, select:focus {
+  border-color: var(--blue);
+}
+input[type=text]::placeholder { color: var(--text3); }
+
+.btn {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn:hover { background: var(--surface3); border-color: rgba(255,255,255,0.2); }
+.btn:active { transform: scale(0.97); }
+.btn.blue { background: rgba(74,158,255,0.15); border-color: rgba(74,158,255,0.4); color: var(--blue); }
+.btn.blue:hover { background: rgba(74,158,255,0.25); }
+.btn.red { background: rgba(255,95,95,0.15); border-color: rgba(255,95,95,0.4); color: var(--red); }
+.btn.red:hover { background: rgba(255,95,95,0.25); }
+.btn.green { background: rgba(78,207,130,0.15); border-color: rgba(78,207,130,0.4); color: var(--green); }
+.btn.green:hover { background: rgba(78,207,130,0.25); }
+.btn.ghost { background: transparent; border-color: var(--border); color: var(--text2); }
+.btn.ghost:hover { color: var(--text); border-color: var(--border2); }
+.btn.amber { background: rgba(244,196,48,0.12); border-color: rgba(244,196,48,0.35); color: var(--accent); }
+.btn.amber:hover { background: rgba(244,196,48,0.2); }
+
+/* DATA DISPLAY */
+.data-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+.data-table th {
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 8px 14px; text-align: left;
+  border-bottom: 1px solid var(--border2);
+}
+.data-table td {
+  padding: 10px 14px; font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr.active-row td { background: rgba(244,196,48,0.06); }
+.idx-badge {
+  font-family: var(--mono); font-size: 11px;
+  background: var(--surface3); color: var(--text3);
+  border-radius: 5px; padding: 2px 8px;
+}
+.cargo-val {
+  font-family: var(--mono); font-size: 13px;
+  color: var(--accent); font-weight: 700;
+}
+.method-chip {
+  font-family: var(--mono); font-size: 11px;
+  background: rgba(74,158,255,0.1); color: var(--blue);
+  border: 1px solid rgba(74,158,255,0.25); border-radius: 5px;
+  padding: 3px 8px; white-space: nowrap;
+}
+.next-chip {
+  font-family: var(--mono); font-size: 11px;
+  background: rgba(167,139,250,0.1); color: var(--purple);
+  border: 1px solid rgba(167,139,250,0.25); border-radius: 5px;
+  padding: 3px 8px; white-space: nowrap;
+}
+.null-chip {
+  font-family: var(--mono); font-size: 11px;
+  background: rgba(255,255,255,0.04); color: var(--text3);
+  border: 1px dashed var(--border2); border-radius: 5px;
+  padding: 3px 8px;
+}
+.step-anim { animation: rowpop .4s ease; }
+@keyframes rowpop { from { opacity:0; transform:translateX(-8px); } to { opacity:1; transform:none; } }
+.explainer-box {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.explainer-box strong { color: var(--text); font-weight: 500; }
+.explainer-box code {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  background: var(--surface3);
+  color: var(--blue);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.walk-btn-row { display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+.walk-pos {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--text3); padding: 0 4px;
+}
+
+/* NODE DEFINITION CARD */
+.node-def-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+.node-def-left { flex: 1; min-width: 220px; }
+.node-def-right { flex: 1; min-width: 220px; }
+.node-def-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.node-diagram {
+  display: flex;
+  align-items: stretch;
+  border: 1.5px solid var(--border2);
+  border-radius: 10px;
+  overflow: hidden;
+  font-family: var(--mono);
+  font-size: 12px;
+  margin-bottom: 10px;
+  width: fit-content;
+}
+.node-field {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.node-field + .node-field {
+  border-left: 1.5px solid var(--border2);
+}
+.node-field.cargo-f { background: rgba(244,196,48,0.08); }
+.node-field.next-f  { background: rgba(167,139,250,0.08); }
+.nf-label { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); }
+.nf-val   { font-size: 13px; font-weight: 700; }
+.nf-val.cargo-c { color: var(--accent); }
+.nf-val.next-c  { color: var(--purple); }
+.nf-method { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.node-caption { font-size: 12px; color: var(--text2); line-height: 1.6; }
+.node-caption code {
+  font-family: var(--mono); font-size: 11px;
+  background: var(--surface3); color: var(--blue);
+  padding: 1px 5px; border-radius: 4px;
+}
+.tab-hint {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.65;
+  margin-bottom: 16px;
+}
+.tab-hint strong { color: var(--text); font-weight: 500; }
+.tab-hint code {
+  font-family: var(--mono); font-size: 11px;
+  background: var(--surface3); color: var(--blue);
+  padding: 1px 5px; border-radius: 4px;
+}
+.hint-badge {
+  display: inline-block;
+  font-family: var(--mono); font-size: 10px;
+  padding: 2px 8px; border-radius: 4px;
+  margin-right: 6px; vertical-align: middle;
+}
+.hint-badge.blue  { background: rgba(74,158,255,0.15); color: var(--blue); border: 1px solid rgba(74,158,255,0.3); }
+.hint-badge.red   { background: rgba(255,95,95,0.15);  color: var(--red);  border: 1px solid rgba(255,95,95,0.3); }
+.hint-badge.green { background: rgba(78,207,130,0.15); color: var(--green);border: 1px solid rgba(78,207,130,0.3); }
+.hint-badge.amber { background: rgba(244,196,48,0.12); color: var(--accent);border: 1px solid rgba(244,196,48,0.3); }
+
+/* TRAIN VIEWPORT */
+.train-section {
+  margin-bottom: 20px;
+}
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.train-viewport {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 20px 14px;
+  overflow-x: auto;
+  position: relative;
+}
+
+.track-area {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  min-height: 110px;
+  padding-bottom: 12px;
+}
+
+/* RAILS */
+.rails-wrap {
+  position: relative;
+  padding: 4px 0 2px;
+  overflow: hidden;
+}
+.rail {
+  height: 5px;
+  background: var(--surface3);
+  border-radius: 3px;
+  margin: 2px 0;
+  position: relative;
+  overflow: hidden;
+}
+.rail::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(244,196,48,0.15), transparent);
+  animation: shimmer 3s linear infinite;
+}
+@keyframes shimmer { to { left: 200%; } }
+.sleepers {
+  display: flex;
+  gap: 0;
+  height: 10px;
+  margin: 0 -20px;
+}
+.sleeper {
+  flex: 1;
+  border-left: 3px solid var(--surface3);
+}
+
+/* CAR */
+.car-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+}
+.head-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--purple);
+  background: rgba(167,139,250,0.12);
+  border: 1px solid rgba(167,139,250,0.3);
+  border-radius: 4px;
+  padding: 2px 7px;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+.spacer-badge { height: 22px; }
+
+.car {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1.5px solid var(--border2);
+  background: var(--surface2);
+  min-width: 88px;
+  transition: transform .3s, opacity .3s, border-color .2s, box-shadow .2s;
+}
+.car.scanning { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(74,158,255,0.2); }
+.car.found { border-color: var(--green); box-shadow: 0 0 0 3px rgba(78,207,130,0.25); }
+.car.newly-added { animation: pop .4s cubic-bezier(.34,1.56,.64,1); }
+.car.deleting { animation: vanish .35s ease forwards; }
+@keyframes pop { from { transform: scale(0.5) translateY(-10px); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes vanish { to { transform: scale(0.4) translateY(-16px); opacity: 0; } }
+
+.car-cargo {
+  background: var(--surface3);
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 110px;
+}
+.car.found .car-cargo { background: rgba(78,207,130,0.15); color: var(--green); }
+.car.scanning .car-cargo { background: rgba(74,158,255,0.15); color: var(--blue); }
+
+.car-next {
+  padding: 5px 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  text-align: center;
+  background: var(--surface2);
+}
+
+/* WHEELS */
+.wheels {
+  display: flex;
+  justify-content: space-around;
+  padding: 0 8px;
+  margin-top: 4px;
+}
+.wheel {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--surface3);
+  border: 2px solid var(--text3);
+  position: relative;
+}
+.wheel::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--text3);
+  transform-origin: center;
+}
+
+/* ARROW between cars */
+.car-arrow {
+  display: flex;
+  align-items: center;
+  color: var(--text3);
+  font-size: 20px;
+  padding: 0 3px;
+  padding-bottom: 28px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* NULL TAG */
+.null-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+  padding-bottom: 28px;
+}
+.null-tag {
+  padding: 6px 12px;
+  border: 1.5px dashed var(--border2);
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  margin-left: 4px;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 80px;
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+
+/* MESSAGE BAR */
+.msg-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text2);
+  margin-bottom: 20px;
+  transition: all .25s;
+  min-height: 44px;
+}
+.msg-bar.ok { background: rgba(78,207,130,0.08); border-color: rgba(78,207,130,0.3); color: var(--green); }
+.msg-bar.err { background: rgba(255,95,95,0.08); border-color: rgba(255,95,95,0.3); color: var(--red); }
+.msg-bar.info { background: rgba(74,158,255,0.08); border-color: rgba(74,158,255,0.3); color: var(--blue); }
+.msg-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* JAVA CODE */
+.code-section {}
+.code-panel {
+  background: #0a0c10;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.code-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.code-dots { display: flex; gap: 6px; }
+.code-dot { width: 10px; height: 10px; border-radius: 50%; }
+.code-dot:nth-child(1) { background: #ff5f57; }
+.code-dot:nth-child(2) { background: #febc2e; }
+.code-dot:nth-child(3) { background: #28c840; }
+.code-filename {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  margin-left: 4px;
+}
+.code-body {
+  padding: 20px 22px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: #abb2bf;
+  white-space: pre;
+  overflow-x: auto;
+  min-height: 120px;
+}
+.kw { color: #c678dd; }
+.fn { color: #61afef; }
+.str { color: #98c379; }
+.cmt { color: #5c6370; font-style: italic; }
+.num { color: #d19a66; }
+
+@media (max-width: 600px) {
+  .app { padding: 20px 16px 40px; }
+  .logo-title { font-size: 20px; }
+  input[type=text] { width: 120px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo">
+      <span class="logo-eyebrow">Java Data Structures</span>
+      <span class="logo-title">Train<span>List</span></span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val" id="sz">3</div>
+        <div class="stat-lbl">CARS</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="ops">0</div>
+        <div class="stat-lbl">OPS DONE</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- NODE DEFINITION CARD -->
+  <div class="node-def-card">
+    <div class="node-def-left">
+      <div class="node-def-title">What is a Node?</div>
+      <div class="node-diagram">
+        <div class="node-field cargo-f">
+          <span class="nf-label">cargo (data)</span>
+          <span class="nf-val cargo-c" id="demo-cargo">"Coal"</span>
+          <span class="nf-method">getCargo()</span>
+        </div>
+        <div class="node-field next-f">
+          <span class="nf-label">next (pointer)</span>
+          <span class="nf-val next-c" id="demo-next">→ "Timber"</span>
+          <span class="nf-method">getNext()</span>
+        </div>
+      </div>
+      <p class="node-caption">
+        Every car in the train is a <strong>node</strong>. It holds two things:<br>
+        <code>getCargo()</code> — the value stored inside.<br>
+        <code>getNext()</code> — a reference to the next node (or <code>null</code> if last).
+      </p>
+    </div>
+    <div class="node-def-right">
+      <div class="node-def-title">Java class definition</div>
+      <div style="background:#0a0c10;border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;line-height:1.8;color:#abb2bf;overflow-x:auto">
+        <span style="color:#c678dd">public class</span> <span style="color:#61afef">TrainCar</span> {<br>
+        &nbsp;&nbsp;<span style="color:#c678dd">private</span> String <span style="color:#f4c430">cargo</span>; &nbsp;<span style="color:#5c6370;font-style:italic">// the DATA</span><br>
+        &nbsp;&nbsp;<span style="color:#c678dd">private</span> TrainCar <span style="color:#a78bfa">next</span>;&nbsp;&nbsp;<span style="color:#5c6370;font-style:italic">// the POINTER</span><br><br>
+        &nbsp;&nbsp;<span style="color:#c678dd">public</span> String <span style="color:#61afef">getCargo</span>() {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#c678dd">return</span> <span style="color:#c678dd">this</span>.<span style="color:#f4c430">cargo</span>;<br>
+        &nbsp;&nbsp;}<br><br>
+        &nbsp;&nbsp;<span style="color:#c678dd">public</span> TrainCar <span style="color:#61afef">getNext</span>() {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#c678dd">return</span> <span style="color:#c678dd">this</span>.<span style="color:#a78bfa">next</span>;<br>
+        &nbsp;&nbsp;}<br><br>
+        &nbsp;&nbsp;<span style="color:#c678dd">public void</span> <span style="color:#61afef">setNext</span>(TrainCar n) {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#c678dd">this</span>.<span style="color:#a78bfa">next</span> = n;<br>
+        &nbsp;&nbsp;}<br>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB HINTS -->
+  <div class="tab-hint" id="hint-insert">
+    <span class="hint-badge blue">INSERT</span>
+    <strong>Adding a new node</strong> means creating a new <code>TrainCar</code> and wiring it in with <code>setNext()</code>.<br>
+    At the <strong>start</strong>: the new car's <code>next</code> points to the old head, then <code>head</code> is updated.<br>
+    At the <strong>end</strong>: walk with <code>getNext()</code> until you reach <code>null</code>, then attach.<br>
+    In the <strong>middle</strong>: re-wire two <code>setNext()</code> calls — the new car points forward, the previous car points to the new one.
+  </div>
+  <div class="tab-hint" id="hint-delete" style="display:none">
+    <span class="hint-badge red">DELETE</span>
+    <strong>Removing a node</strong> means making the node <em>before</em> it skip over it using <code>setNext()</code>.<br>
+    If deleting the <strong>head</strong>: simply move <code>head = head.getNext()</code>.<br>
+    Otherwise: walk until <code>current.getNext()</code> is the target, then call <code>current.setNext(current.getNext().getNext())</code>.<br>
+    The removed node is now disconnected — Java's garbage collector will clean it up.
+  </div>
+  <div class="tab-hint" id="hint-search" style="display:none">
+    <span class="hint-badge green">SEARCH</span>
+    <strong>Searching</strong> means walking the list one node at a time using <code>getNext()</code> and checking each node's value with <code>getCargo()</code>.<br>
+    Start at <code>head</code>, loop while <code>current != null</code>. If <code>getCargo()</code> matches — found it!<br>
+    If the loop ends without a match, the value is not in the list. This is called <strong>linear search</strong> — O(n) time.
+  </div>
+  <div class="tab-hint" id="hint-read" style="display:none">
+    <span class="hint-badge amber">READ DATA</span>
+    <strong>Reading values</strong> uses <code>getCargo()</code> to access the data field of each node.<br>
+    <code>getCargo()</code> is the <em>getter method</em> for the private <code>cargo</code> field — it's the only safe way to read it from outside the class.<br>
+    Use <strong>Show All Values</strong> to see every node at once, or <strong>Walk One Step</strong> to simulate a <code>while</code> loop stepping through the list one node at a time.
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <button class="tab active insert" onclick="setTab('insert')">Insert</button>
+    <button class="tab delete" onclick="setTab('delete')">Delete</button>
+    <button class="tab search" onclick="setTab('search')">Search</button>
+    <button class="tab read" onclick="setTab('read')">Read Data</button>
+  </div>
+
+  <!-- INSERT PANEL -->
+  <div class="panel" id="panel-insert">
+    <div class="panel-title">Insert a new train car</div>
+    <div class="controls-row">
+      <input type="text" id="ins-val" placeholder="Cargo name..." maxlength="10"/>
+      <button class="btn blue" onclick="insertAt('start')">&#43; At Start</button>
+      <button class="btn blue" onclick="insertAfterDialog()">&#43; After Car</button>
+      <button class="btn blue" onclick="insertAt('end')">&#43; At End</button>
+      <button class="btn ghost" onclick="resetTrain()">Reset</button>
+    </div>
+    <div class="controls-row" id="after-row" style="display:none">
+      <span style="font-size:13px;color:var(--text2)">Insert after:</span>
+      <select id="after-sel"></select>
+      <button class="btn green" onclick="confirmInsertAfter()">Confirm</button>
+      <button class="btn ghost" onclick="cancelAfter()">Cancel</button>
+    </div>
+  </div>
+
+  <!-- DELETE PANEL -->
+  <div class="panel" id="panel-delete" style="display:none">
+    <div class="panel-title">Remove a train car</div>
+    <div class="controls-row">
+      <select id="del-sel"></select>
+      <button class="btn red" onclick="doDelete()">Remove Car</button>
+    </div>
+  </div>
+
+  <!-- SEARCH PANEL -->
+  <div class="panel" id="panel-search" style="display:none">
+    <div class="panel-title">Search the train</div>
+    <div class="controls-row">
+      <input type="text" id="srch-val" placeholder="Cargo name..." maxlength="10"/>
+      <button class="btn green" onclick="doSearch()">Search</button>
+      <button class="btn ghost" onclick="clearSearch()">Clear</button>
+    </div>
+  </div>
+
+  <!-- READ DATA PANEL -->
+  <div class="panel" id="panel-read" style="display:none">
+    <div class="panel-title">Read data — getCargo() &amp; getNext()</div>
+    <div class="controls-row">
+      <button class="btn amber" onclick="showAllData()">Show All Values</button>
+      <button class="btn amber" onclick="walkStep()">Walk One Step</button>
+      <button class="btn ghost" onclick="resetWalk()">Reset Walk</button>
+    </div>
+    <div id="walk-pos-label" class="walk-pos" style="margin-top:8px;display:none"></div>
+    <div id="data-table-wrap" style="margin-top:14px;display:none">
+      <table class="data-table" id="data-table">
+        <thead>
+          <tr>
+            <th>Index</th>
+            <th>getCargo()</th>
+            <th>getNext()</th>
+            <th>Java call</th>
+          </tr>
+        </thead>
+        <tbody id="data-tbody"></tbody>
+      </table>
+    </div>
+    <div class="explainer-box" id="data-explainer" style="display:none"></div>
+  </div>
+
+  <!-- MESSAGE BAR -->
+  <div class="msg-bar" id="msg">
+    <div class="msg-dot"></div>
+    <span id="msg-text">Your train is ready — try inserting, deleting, or searching!</span>
+  </div>
+
+  <!-- TRAIN -->
+  <div class="train-section">
+    <div class="section-label">Linked list visualisation</div>
+    <div class="train-viewport">
+      <div class="track-area" id="track"></div>
+      <div class="rails-wrap">
+        <div class="rail"></div>
+        <div class="sleepers" id="sleepers"></div>
+        <div class="rail"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CODE -->
+  <div class="code-section">
+    <div class="section-label">Java — what just happened</div>
+    <div class="code-panel">
+      <div class="code-header">
+        <div class="code-dots">
+          <div class="code-dot"></div>
+          <div class="code-dot"></div>
+          <div class="code-dot"></div>
+        </div>
+        <span class="code-filename">TrainCar.java</span>
+      </div>
+      <div class="code-body" id="java-code"><span class="cmt">// Make a move above to see the Java code here</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const CARGOS = ['Coal','Timber','Steel','Gold','Iron','Wheat','Oil','Cotton','Stone','Copper','Silver','Wood'];
+let list = [];
+let ops = 0;
+let searchTimer = null;
+
+function uid(){ return Math.random().toString(36).slice(2,8); }
+function rnd(){ return CARGOS[Math.floor(Math.random()*CARGOS.length)]; }
+
+function setTab(t){
+  document.querySelectorAll('.tab').forEach(b=>{
+    b.classList.toggle('active', b.textContent.toLowerCase().trim()===t);
+  });
+  ['insert','delete','search','read'].forEach(p=>{
+    document.getElementById('panel-'+p).style.display = p===t?'':'none';
+    document.getElementById('hint-'+p).style.display = p===t?'':'none';
+  });
+  clearSearch();
+  cancelAfter();
+  if(t!=='read') resetWalk();
+}
+
+function updateNodeDiagram(){
+  const first = list[0];
+  const second = list[1];
+  document.getElementById('demo-cargo').textContent = first ? `"${first.val}"` : 'null';
+  document.getElementById('demo-next').textContent = second ? `→ "${second.val}"` : '= null';
+}
+
+function render(opts={}){
+  const track = document.getElementById('track');
+  track.innerHTML='';
+
+  if(list.length===0){
+    track.innerHTML='<div class="empty-state">// empty list — head = null</div>';
+    document.getElementById('sz').textContent='0';
+    updateSelects();
+    updateNodeDiagram();
+    return;
+  }
+
+  list.forEach((node,i)=>{
+    const grp = document.createElement('div');
+    grp.className='car-group';
+
+    if(i===0){
+      const hb=document.createElement('div');
+      hb.className='head-badge'; hb.textContent='HEAD';
+      grp.appendChild(hb);
+    } else {
+      const sp=document.createElement('div');
+      sp.className='spacer-badge';
+      grp.appendChild(sp);
+    }
+
+    const car=document.createElement('div');
+    car.className='car';
+    if(node.id===opts.highlight) car.classList.add('scanning');
+    if(node.id===opts.found) car.classList.add('found');
+    if(node.id===opts.deleting) car.classList.add('deleting');
+    if(node.id===opts.added) car.classList.add('newly-added');
+
+    const isLast = i===list.length-1;
+    car.innerHTML=`<div class="car-cargo">${node.val}</div><div class="car-next">next ${isLast?'= null':'→'}</div>`;
+    grp.appendChild(car);
+
+    const wheels = document.createElement('div');
+    wheels.className='wheels';
+    wheels.innerHTML='<div class="wheel"></div><div class="wheel"></div>';
+    grp.appendChild(wheels);
+
+    track.appendChild(grp);
+
+    if(!isLast){
+      const arr=document.createElement('div');
+      arr.className='car-arrow';
+      arr.innerHTML='&#8594;';
+      track.appendChild(arr);
+    }
+  });
+
+  const nw=document.createElement('div');
+  nw.className='null-wrap';
+  nw.innerHTML='<div class="spacer-badge"></div><div class="null-tag">null</div>';
+  track.appendChild(nw);
+
+  document.getElementById('sz').textContent=list.length;
+  updateSelects();
+  buildSleepers();
+  updateNodeDiagram();
+}
+
+function buildSleepers(){
+  const sl=document.getElementById('sleepers');
+  const w=document.querySelector('.train-viewport')?.offsetWidth||800;
+  sl.innerHTML='';
+  for(let i=0;i<Math.ceil(w/22);i++){
+    const s=document.createElement('div');
+    s.className='sleeper'; sl.appendChild(s);
+  }
+}
+
+function updateSelects(){
+  const opts=list.map((n,i)=>`<option value="${n.id}">${i===0?'[HEAD] ':i===list.length-1?'[TAIL] ':''}${n.val}</option>`).join('');
+  document.getElementById('del-sel').innerHTML=opts||'<option disabled>No cars</option>';
+  document.getElementById('after-sel').innerHTML=opts||'<option disabled>No cars</option>';
+}
+
+function msg(text,type=''){
+  const bar=document.getElementById('msg');
+  bar.className='msg-bar'+(type?' '+type:'');
+  document.getElementById('msg-text').textContent=text;
+}
+
+function javaCode(html){
+  document.getElementById('java-code').innerHTML=html;
+}
+
+const kw=s=>`<span class="kw">${s}</span>`;
+const fn=s=>`<span class="fn">${s}</span>`;
+const st=s=>`<span class="str">"${s}"</span>`;
+const cm=s=>`<span class="cmt">${s}</span>`;
+
+function insertAt(pos){
+  const val=(document.getElementById('ins-val').value.trim()||rnd());
+  document.getElementById('ins-val').value='';
+  const node={id:uid(),val};
+  ops++;
+  document.getElementById('ops').textContent=ops;
+  if(pos==='start'){
+    list.unshift(node);
+    render({added:node.id});
+    msg(`"${val}" added at the START — it's the new head!`,'ok');
+    javaCode(`${cm('// Insert at START')}\n${kw('TrainCar')} newCar = ${kw('new')} ${fn('TrainCar')}(${st(val)});\nnewCar.${fn('setNext')}(head);   ${cm('// new car points to old head')}\nhead = newCar;          ${cm('// head now points to new car')}`);
+  } else {
+    list.push(node);
+    render({added:node.id});
+    msg(`"${val}" added at the END — it's the new tail!`,'ok');
+    javaCode(`${cm('// Insert at END')}\n${kw('TrainCar')} newCar = ${kw('new')} ${fn('TrainCar')}(${st(val)});\n${kw('TrainCar')} current = head;\n${kw('while')} (current.${fn('getNext')}() != ${kw('null')}) {\n    current = current.${fn('getNext')}();   ${cm('// walk to tail')}\n}\ncurrent.${fn('setNext')}(newCar);  ${cm('// tail now points to new car')}`);
+  }
+}
+
+function insertAfterDialog(){
+  if(list.length===0){msg('Add at least one car first!','err');return;}
+  document.getElementById('after-row').style.display='flex';
+}
+function cancelAfter(){
+  document.getElementById('after-row').style.display='none';
+}
+function confirmInsertAfter(){
+  const selId=document.getElementById('after-sel').value;
+  const idx=list.findIndex(n=>n.id===selId);
+  if(idx<0){msg('Car not found','err');return;}
+  const val=(document.getElementById('ins-val').value.trim()||rnd());
+  document.getElementById('ins-val').value='';
+  const node={id:uid(),val};
+  list.splice(idx+1,0,node);
+  ops++;document.getElementById('ops').textContent=ops;
+  cancelAfter();
+  render({added:node.id});
+  const prev=list[idx].val;
+  const nxt=list[idx+2]?.val||null;
+  msg(`"${val}" inserted after "${prev}"!`,'ok');
+  javaCode(`${cm('// Insert AFTER "'+prev+'"')}\n${kw('TrainCar')} newCar = ${kw('new')} ${fn('TrainCar')}(${st(val)});\n${kw('TrainCar')} current = head;\n${kw('while')} (!current.cargo.${fn('equals')}(${st(prev)})) {\n    current = current.${fn('getNext')}();\n}\n${cm('// re-wire the pointers')}\nnewCar.${fn('setNext')}(current.${fn('getNext')}());  ${cm('// new → '+(nxt?'"'+nxt+'"':'null'))}\ncurrent.${fn('setNext')}(newCar);       ${cm('// "'+prev+'" → new car')}`);
+}
+
+function doDelete(){
+  const selId=document.getElementById('del-sel').value;
+  const idx=list.findIndex(n=>n.id===selId);
+  if(idx<0||list.length===0){msg('No car selected','err');return;}
+  const val=list[idx].val;
+  render({deleting:selId});
+  setTimeout(()=>{
+    list.splice(idx,1);
+    ops++;document.getElementById('ops').textContent=ops;
+    render();
+    if(idx===0){
+      msg(`"${val}" removed. Head now points to the next car.`,'ok');
+      javaCode(`${cm('// Delete HEAD')}\nhead = head.${fn('getNext')}();\n${cm('// "'+val+'" is now disconnected — garbage collected')}`);
+    } else {
+      const prev=list[idx-1]?.val||'prev';
+      const nxt=list[idx]?.val||null;
+      msg(`"${val}" deleted. "${prev}" → ${nxt?'"'+nxt+'"':'null'}`,'ok');
+      javaCode(`${cm('// Delete "'+val+'"')}\n${kw('TrainCar')} current = head;\n${kw('while')} (!current.${fn('getNext')}().cargo.${fn('equals')}(${st(val)})) {\n    current = current.${fn('getNext')}();\n}\n${cm('// skip over "'+val+'"')}\ncurrent.${fn('setNext')}(current.${fn('getNext')}().${fn('getNext')}());\n${cm('// "'+val+'" disconnected — removed!')}`);
+    }
+  },380);
+}
+
+function doSearch(){
+  if(list.length===0){msg('Train is empty!','err');return;}
+  const target=document.getElementById('srch-val').value.trim();
+  if(!target){msg('Enter a cargo name to search','err');return;}
+  clearSearch();
+  let step=0;
+  msg(`Scanning for "${target}"...`,'info');
+  javaCode(`${cm('// Search for "'+target+'"')}\n${kw('TrainCar')} current = head;\n${kw('while')} (current != ${kw('null')}) {\n    ${kw('if')} (current.cargo.${fn('equals')}(${st(target)})) {\n        ${kw('return')} current;  ${cm('// FOUND!')}\n    }\n    current = current.${fn('getNext')}();\n}\n${kw('return')} ${kw('null')};  ${cm('// not found')}`);
+  searchTimer=setInterval(()=>{
+    if(step>=list.length){clearInterval(searchTimer);return;}
+    if(list[step].val.toLowerCase()===target.toLowerCase()){
+      render({found:list[step].id});
+      msg(`Found "${list[step].val}" at index ${step} (position ${step+1})!`,'ok');
+      ops++;document.getElementById('ops').textContent=ops;
+      clearInterval(searchTimer);
+    } else if(step===list.length-1){
+      render();
+      msg(`"${target}" not found — reached null at the end.`,'err');
+      clearInterval(searchTimer);
+    } else {
+      render({highlight:list[step].id});
+      msg(`Checking [${step}] "${list[step].val}" — not a match, moving on...`,'info');
+    }
+    step++;
+  },700);
+}
+
+function clearSearch(){
+  if(searchTimer) clearInterval(searchTimer);
+  searchTimer=null;
+  render();
+}
+
+let walkIndex = -1;
+
+function showAllData(){
+  if(list.length===0){msg('Train is empty — add some cars first!','err');return;}
+  walkIndex=-1;
+  const wrap=document.getElementById('data-table-wrap');
+  const tbody=document.getElementById('data-tbody');
+  const expl=document.getElementById('data-explainer');
+  const posLbl=document.getElementById('walk-pos-label');
+  wrap.style.display='block';
+  expl.style.display='block';
+  posLbl.style.display='none';
+  tbody.innerHTML='';
+  list.forEach((node,i)=>{
+    const isLast=i===list.length-1;
+    const tr=document.createElement('tr');
+    tr.className='step-anim';
+    tr.style.animationDelay=(i*60)+'ms';
+    tr.innerHTML=`
+      <td><span class="idx-badge">[${i}]</span></td>
+      <td><span class="cargo-val">"${node.val}"</span></td>
+      <td>${isLast?'<span class="null-chip">null</span>':`<span class="next-chip">"${list[i+1].val}"</span>`}</td>
+      <td><span class="method-chip">car${i}.getCargo()</span></td>`;
+    tbody.appendChild(tr);
+  });
+  ops++;document.getElementById('ops').textContent=ops;
+  msg(`Displaying all ${list.length} cargo values using getCargo()`,'ok');
+  expl.innerHTML=`
+    <strong>How getCargo() works:</strong><br>
+    Every node has two fields: <code>cargo</code> (the data) and <code>next</code> (the pointer).<br>
+    Calling <code>getCargo()</code> returns the value stored in that car.<br>
+    Calling <code>getNext()</code> returns the <em>next TrainCar object</em> — or <code>null</code> if it's the last car.<br><br>
+    <strong>Walking the whole list looks like this:</strong><br>
+    <code>TrainCar current = head;</code><br>
+    <code>while (current != null) {</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;System.out.println(current.getCargo());</code><br>
+    <code>&nbsp;&nbsp;&nbsp;&nbsp;current = current.getNext();</code><br>
+    <code>}</code>`;
+  javaCode(`${cm('// Read ALL values using getCargo()')}\n${kw('TrainCar')} current = head;\n${kw('while')} (current != ${kw('null')}) {\n    System.out.${fn('println')}(current.${fn('getCargo')}());\n    current = current.${fn('getNext')}();  ${cm('// move to next car')}\n}\n\n${cm('// Output:')}\n${list.map(n=>`${cm('// → "'+n.val+'"')}`).join('\n')}`);
+  render();
+}
+
+function walkStep(){
+  if(list.length===0){msg('Train is empty!','err');return;}
+  const wrap=document.getElementById('data-table-wrap');
+  const tbody=document.getElementById('data-tbody');
+  const expl=document.getElementById('data-explainer');
+  const posLbl=document.getElementById('walk-pos-label');
+  walkIndex++;
+  wrap.style.display='block';
+  expl.style.display='block';
+  posLbl.style.display='block';
+
+  if(walkIndex===0) tbody.innerHTML='';
+
+  if(walkIndex>=list.length){
+    render();
+    posLbl.textContent='current = null — reached end of list';
+    msg('Reached null — end of the list!','info');
+    javaCode(`${cm('// current.getNext() returned null')}\n${cm('// We have visited all cars:')}\n${list.map((n,i)=>`${cm('// ['+i+'] getCargo() → "'+n.val+'"')}`).join('\n')}\n\n${cm('// Loop ends here — current == null')}`);
+    const tr=document.createElement('tr');
+    tr.className='step-anim';
+    tr.innerHTML=`<td colspan="4" style="text-align:center"><span class="null-chip">current = null — loop ends</span></td>`;
+    tbody.appendChild(tr);
+    walkIndex=-1;
+    return;
+  }
+
+  const node=list[walkIndex];
+  const isLast=walkIndex===list.length-1;
+  render({highlight:node.id});
+  posLbl.textContent=`current = car[${walkIndex}] — calling getCargo()`;
+
+  const tr=document.createElement('tr');
+  tr.className='step-anim active-row';
+  tr.innerHTML=`
+    <td><span class="idx-badge">[${walkIndex}]</span></td>
+    <td><span class="cargo-val">"${node.val}"</span></td>
+    <td>${isLast?'<span class="null-chip">null</span>':`<span class="next-chip">"${list[walkIndex+1].val}"</span>`}</td>
+    <td><span class="method-chip">car${walkIndex}.getCargo()</span></td>`;
+  tbody.appendChild(tr);
+
+  if(tbody.children.length>1){
+    tbody.children[tbody.children.length-2].classList.remove('active-row');
+  }
+
+  ops++;document.getElementById('ops').textContent=ops;
+  msg(`[${walkIndex}] getCargo() → "${node.val}" | getNext() → ${isLast?'null':'"'+list[walkIndex+1].val+'"'}`,'ok');
+
+  expl.innerHTML=`
+    <strong>Step ${walkIndex+1} of ${list.length}:</strong> current car is <code>"${node.val}"</code><br><br>
+    <code>current.getCargo()</code> returns <span style="color:var(--accent);font-family:var(--mono)">"${node.val}"</span> — that's the data stored here.<br>
+    <code>current.getNext()</code> returns ${isLast?'<code>null</code> — this is the <strong>last car</strong> (tail)':`a reference to the next car: <span style="color:var(--purple);font-family:var(--mono)">"${list[walkIndex+1].val}"</span>`}.<br><br>
+    ${walkIndex===0?'We started at <code>head</code>.':''} ${isLast?'Next call to getNext() returns null — the loop will stop.':'Click <strong>Walk One Step</strong> again to move to the next car.'}`;
+
+  javaCode(`${cm('// Step '+(walkIndex+1)+': reading car at index '+walkIndex)}\n${kw('String')} value = current.${fn('getCargo')}();  ${cm('// → "'+node.val+'"')}\n${kw('TrainCar')} next  = current.${fn('getNext')}();   ${cm('// → '+(isLast?'null':'"'+list[walkIndex+1].val+'"'))}\n\nSystem.out.${fn('println')}(value);  ${cm('// prints "'+node.val+'"')}\n\n${cm('// Now move forward:')}\ncurrent = current.${fn('getNext')}();  ${cm(isLast?'// returns null — loop ends':'// moves to "'+list[walkIndex+1].val+'"')}`);
+}
+
+function resetWalk(){
+  walkIndex=-1;
+  document.getElementById('data-table-wrap').style.display='none';
+  document.getElementById('data-explainer').style.display='none';
+  document.getElementById('walk-pos-label').style.display='none';
+  document.getElementById('data-tbody').innerHTML='';
+  render();
+}
+
+function resetTrain(){
+  clearSearch();
+  list=[];ops=0;
+  document.getElementById('ops').textContent='0';
+  render();
+  msg('Train reset. Add some cars!','');
+  javaCode(`${cm('// Reset')}\nhead = ${kw('null')};`);
+}
+
+list=[{id:uid(),val:'Coal'},{id:uid(),val:'Timber'},{id:uid(),val:'Steel'}];
+render();
+javaCode(`${cm('// Starting train: Coal → Timber → Steel')}\n${kw('TrainCar')} car1 = ${kw('new')} ${fn('TrainCar')}(${st('Coal')});\n${kw('TrainCar')} car2 = ${kw('new')} ${fn('TrainCar')}(${st('Timber')});\n${kw('TrainCar')} car3 = ${kw('new')} ${fn('TrainCar')}(${st('Steel')});\ncar1.${fn('setNext')}(car2);\ncar2.${fn('setNext')}(car3);\n${kw('TrainCar')} head = car1;`);
+window.addEventListener('resize', buildSleepers);
+</script>
+</body>
+</html>
